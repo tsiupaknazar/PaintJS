@@ -80,4 +80,26 @@ body {
   border-radius: 50%;
 }
 
+/* Block for mobile */
+.not-available {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  color: #fff;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  z-index: 9999;
+}
+@media screen and (min-width: 1001px) {
+  .not-available {
+    display: none; 
+  }
+}
+
 /* Media */

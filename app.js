@@ -24,11 +24,15 @@ let painting = false;
 let filling = false;
 let erase = false;
 
+let startX, startY;
+
 function stopPainting() {
   painting = false;
 }
 function startPainting() {
   painting = true;
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
 }
 function stopErasing() {
   erase = false;
@@ -37,18 +41,26 @@ function startErasing() {
   erase = true;
 }
 function onMouseMove(event) {
-  x = event.offsetX;
-  y = event.offsetY;
+  const x = event.offsetX;
+  const y = event.offsetY;
   if (!painting) {
-    ctx.beginPath();
-    ctx.moveTo(x, y);
+    startX = x;
+    startY = y;
   } else {
     ctx.lineTo(x, y);
     ctx.stroke();
   }
 }
 function onMouseDown(event) {
-  painting = true;
+  const x = event.offsetX;
+  const y = event.offsetY;
+  startX = x;
+  startY = y;
+  if (erase) {
+    startErasing();
+  } else {
+    startPainting();
+  }
 }
 function changeColor(event) {
   const color = event.target.style.backgroundColor;
@@ -86,88 +98,55 @@ function savePicture() {
 function eraseCanvas() {
   filling = false;
   painting = false;
-  ctx.beginPath();
-  ctx.moveTo(x, y);
+  erase = true;
   ctx.strokeStyle = "white";
 }
-function circleDraw() {}
+function circleDraw() {
+  const radius = Math.sqrt((startX - x) ** 2 + (startY - y) ** 2);
+  ctx.beginPath();
+  ctx.arc(startX, startY, radius, 0, 2 * Math.PI);
+  ctx.stroke();
+}
 
-var first = {};
-var stop = false;
-if (canvas.getContext) {
-  canvas.addEventListener(
-    "mousemove",
-    function (e) {
-      var pos = getMousePos(canvas, e), /// provide this canvas and event
-        x = pos.x,
-        y = pos.y;
+function rectDraw() {
+  const width = x - startX;
+  const height = y - startY;
+  ctx.strokeRect(startX, startY, width, height);
+}
 
-      /// check x and y against the grid
-    },
-    false
-  );
-
-  function rectDraw() {
-    canvas.addEventListener(
-      "click",
-      function (e) {
-        var pos = getMousePos(canvas, e), /// provide this canvas and event
-          x = pos.x,
-          y = pos.y;
-        if (Object.keys(first).length === 0) {
-          first.x = x;
-          first.y = y;
-        } else {
-          stop = true;
-        }
-
-        /// check x and y against the grid
-      },
-      false
-    );
+function onMouseUp(event) {
+  if (erase) {
+    stopErasing();
+  } else if (painting && !filling) {
+    stopPainting();
   }
-  function getMousePos(canvas, e) {
-    var rect = canvas.getBoundingClientRect();
-    if (Object.keys(first).length !== 0 && !stop) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.strokeRect(
-        first.x,
-        first.y,
-        e.clientX - rect.left,
-        e.clientY - rect.top
-      );
-    }
-    console.log({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+}
 
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-  }
+if (canvas) {
+  canvas.addEventListener("mousemove", onMouseMove);
+  canvas.addEventListener("mousedown", onMouseDown);
+  canvas.addEventListener("mouseup", onMouseUp);
+  canvas.addEventListener("mouseleave", stopPainting);
+  canvas.addEventListener("click", canvasClick);
+  canvas.addEventListener("contextmenu", handleCM);
+}
 
-  //canvas methods
-  if (canvas) {
-    canvas.addEventListener("mousemove", onMouseMove);
-    canvas.addEventListener("mousedown", onMouseDown);
-    canvas.addEventListener("mouseup", stopPainting);
-    canvas.addEventListener("mouseleave", stopPainting);
-    canvas.addEventListener("click", canvasClick);
-    canvas.addEventListener("contextmenu", handleCM);
-  }
+Array.from(colors).forEach((color) =>
+  color.addEventListener("click", changeColor)
+);
 
-  //Pick color
-  Array.from(colors).forEach((color) =>
-    color.addEventListener("click", changeColor)
-  );
+if (range) {
+  range.addEventListener("input", rangeChange);
+}
 
-  //Brush size changer
-  if (range) {
-    range.addEventListener("input", rangeChange);
-  }
-  if (mode) {
-    mode.addEventListener("click", modeChange);
-  }
-  if (saveBtn) {
-    saveBtn.addEventListener("click", savePicture);
-  }
-  if (eraseBtn) {
-    eraseBtn.addEventListener("click", eraseCanvas);
-  }
+if (mode) {
+  mode.addEventListener("click", modeChange);
+}
+
+if (saveBtn) {
+  saveBtn.addEventListener("click", savePicture);
+}
+
+if (eraseBtn) {
+  eraseBtn.addEventListener("click", eraseCanvas);
 }
