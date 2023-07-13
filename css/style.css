@@ -67,7 +67,7 @@ body {
   transform: rotate(-90deg);
   margin-top: 50px;
 }
-.line {
+.divider {
   width: 100px;
   height: 1px;
   margin-top: 10px;
